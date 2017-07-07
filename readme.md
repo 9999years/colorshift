@@ -39,4 +39,4 @@ ColorShift requires (at least) [Pillow][4] (`pip install Pillow` or whatever).
 [2]: https://codegolf.stackexchange.com/questions/22144/images-with-all-colors
 [3]: https://www.reddit.com/r/glitch_art/comments/6ltv7m/i_wrote_a_program_that_makes_each_pixel_in_an/
 [4]: https://pillow.readthedocs.io/en/latest/index.html
-[5]: tree/python_2
+[5]: /9999years/colorshift/tree/master
