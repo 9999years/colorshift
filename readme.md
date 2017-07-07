@@ -7,13 +7,29 @@ Inspired by [a CodeGolf.SE post for images with all colors][2].
 
 [Post on /r/glitch_art, with discussion][3]
 
-# This is the development branch
+This branch has ported the original code to Python 3 — if you’d *really* like
+to use Python 2, there’s a [`python_2`][5] branch that I will **not
+maintain.**
 
-I’m modifying the original code to
+# Usage
 
-1. Port it to Python 3
-2. Make it more readable and introduce a better public interface
-3. Make it faster (maybe)
+```
+usage: colorshift.py [-h] [--order ORDER ORDER ORDER] [--hsv] [--sort]
+                     filename colorsize
+
+Fuck up an image
+
+positional arguments:
+  filename              File to fuck
+  colorsize             Minimum: ceil(cbrt(width*height)) - color resolution
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --order ORDER ORDER ORDER
+                        Order to check cells in, default 0 1 2
+  --hsv                 Use HSV instead of RGB
+  --sort                Sort a thing. Time consuming, but cool
+```
 
 # Dependencies
 
@@ -23,3 +39,4 @@ ColorShift requires (at least) [Pillow][4] (`pip install Pillow` or whatever).
 [2]: https://codegolf.stackexchange.com/questions/22144/images-with-all-colors
 [3]: https://www.reddit.com/r/glitch_art/comments/6ltv7m/i_wrote_a_program_that_makes_each_pixel_in_an/
 [4]: https://pillow.readthedocs.io/en/latest/index.html
+[5]: tree/python_2
