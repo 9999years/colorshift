@@ -1,4 +1,4 @@
-import image
+import Image
 import math
 import argparse
 import colorsys
@@ -66,7 +66,7 @@ def main():
 		transform_colorspace[start_key]= deque(sorted(transform_colorspace[start_key], key=lambda x: ((width/2 - x[0]) ** 2 + (height/2 - x[1]) ** 2) ** 0.5))
 		if len(transform_colorspace[start_key]) != _prev:
 			_prev = len(transform_colorspace[start_key])
-			print(_prev)
+			print _prev
 		# Declare shit
 		end_keys = []
 		searched = {} # Use a dict for searched keys because hash maps are fast
@@ -100,7 +100,7 @@ def main():
 		# tail of one point to the head of the next.
 		for end_key in end_keys:
 			if prev[end_key] is None:
-				print("OH FUCK SOMETHIN BAD HAPPENED")
+				print "OH FUCK SOMETHIN BAD HAPPENED"
 
 			current_key = end_key
 			while prev[current_key] is not None:
@@ -109,7 +109,7 @@ def main():
 
 
 	# Transform back to 256 colors
-	print("Converting image...")
+	print "Converting image..."
 	output_image = Image.new(input_image.mode, input_image.size)
 	for key, point in transform_colorspace.iteritems():
 		a = float(key[0]) / (color_size - 1)

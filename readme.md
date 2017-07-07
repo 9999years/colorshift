@@ -8,4 +8,7 @@ this as I figure more of it out, though.
 
 `Colorator.py` is the file to run, though.
 
+Inspired by [a CodeGolf.SE post for images with all colors][2].
+
 [1]: https://www.reddit.com/user/RedHotChiliRocket
+[2]: https://codegolf.stackexchange.com/questions/22144/images-with-all-colors

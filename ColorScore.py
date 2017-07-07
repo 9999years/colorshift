@@ -35,10 +35,10 @@ def main():
 			transform_colorspace[c].append((x, y))
 
 	# Now do the actual color smoothing
-	print("")
-	print("Higher score indicates output will take longer and be more distorted.")
-	print("For example, a score of ~500,000 could take 2 to 4 hours.")
-	print("Score:", color_size * len(transform_colorspace[[x for x in sorted(transform_colorspace, key=lambda x: len(transform_colorspace[x])) if len(transform_colorspace[x]) > 1][-1]])) # MY MAX LINE LENGTH IS INFINITY
+	print ""
+	print "Higher score indicates output will take longer and be more distorted."
+	print "For example, a score of ~500,000 could take 2 to 4 hours."
+	print "Score:", color_size * len(transform_colorspace[[x for x in sorted(transform_colorspace, key=lambda x: len(transform_colorspace[x])) if len(transform_colorspace[x]) > 1][-1]]) # MY MAX LINE LENGTH IS INFINITY
 
 if __name__ == '__main__':
 	main()
