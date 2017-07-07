@@ -10,5 +10,8 @@ this as I figure more of it out, though.
 
 Inspired by [a CodeGolf.SE post for images with all colors][2].
 
+[Post on /r/glitch_art, with discussion][3]
+
 [1]: https://www.reddit.com/user/RedHotChiliRocket
 [2]: https://codegolf.stackexchange.com/questions/22144/images-with-all-colors
+[3]: https://www.reddit.com/r/glitch_art/comments/6ltv7m/i_wrote_a_program_that_makes_each_pixel_in_an/
