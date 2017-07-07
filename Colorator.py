@@ -1,4 +1,4 @@
-import Image
+import image
 import math
 import argparse
 import colorsys
