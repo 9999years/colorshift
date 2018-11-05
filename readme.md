@@ -7,9 +7,7 @@ Inspired by [a CodeGolf.SE post for images with all colors][2].
 
 [Post on /r/glitch_art, with discussion][3]
 
-This branch has ported the original code to Python 3 — if you’d *really* like
-to use Python 2, there’s a [`python_2`][5] branch that I will **not
-maintain.**
+This code is unmaintained, but feel free to fork or put in pull requests.
 
 # Usage
 
