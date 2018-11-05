@@ -1,29 +1,74 @@
-from PIL import Image
 import math
 import argparse
-import colorsys
 from collections import deque
+import os
+import sys
+from datetime import datetime
 
-def main():
+import colorsys
+
+from PIL import Image
+
+def iso_now():
+    """iso-formatted utc time"""
+    return datetime.utcnow().strftime('%Y-%m-%dT%H_%M_%S')
+
+_timer = datetime.utcnow()
+def start_timer(txt=None):
+    global _timer
+    if txt:
+        print(txt, end='... ')
+        sys.stdout.flush()
+    _timer = datetime.utcnow()
+
+def end_timer():
+    end = datetime.utcnow()
+    delta = end - _timer
+    print(delta)
+    return delta
+
+def argparser():
     parser = argparse.ArgumentParser(description="Fuck up an image")
     parser.add_argument('filename', type=str, help="File to fuck")
-    parser.add_argument('colorsize', type=int,
-        help="Minimum: ceil(cbrt(width*height)) - color resolution")
+    parser.add_argument('colorsize', type=int, nargs='?', default=64,
+        help='''Minimum: ceil(cbrt(width*height)) - color resolution. Default:
+        64. Note that image processing time grows cubically with proportion to
+        this.''')
     parser.add_argument('--order', type=int, nargs=3, default=[0,1,2],
         help="Order to check cells in, default 0 1 2")
     parser.add_argument('--hsv', action='store_true', default=False,
         help="Use HSV instead of RGB")
     parser.add_argument('--sort', action='store_true', default=False,
         help="Sort a thing. Time consuming, but cool")
-    args = parser.parse_args()
+    return parser
+
+def convert_output_image(input_image, transform_colorspace, color_size=2, unconvert_color=lambda a, b, c: (a, b, c)):
+    # Transform back to 256 colors
+    output_image = Image.new(input_image.mode, input_image.size)
+    for key, point in transform_colorspace.items():
+        a, b, c = map(lambda x: int(x * 255),
+                unconvert_color(
+                    *map(lambda x: float(x) / (color_size - 1),
+                        key)))
+
+        for pos in point:
+            x, y = pos
+            output_image.putpixel((x, y), (a, b, c))
+
+    return output_image
+
+def main():
+    args = argparser().parse_args()
 
     filename = args.filename
     color_size = args.colorsize
 
-    if color_size < 1:
-        print('WARNING: A colorsize of 0 will trigger 0-divide error, and '
-            'a negative colorsize makes no sense. Defaulting to 1.')
-        color_size = 1
+    if color_size < 2:
+        print('WARNING: A colorsize of 0 or 1 will trigger 0-divide error, and '
+            'a negative colorsize makes no sense. Defaulting to 2.')
+        color_size = 2
+    elif color_size >= 128:
+        print('WARNING: large color sizes (>128 or so) will take a very long time to run')
 
     if args.hsv:
         get_adj = get_adj_HSB
@@ -31,29 +76,24 @@ def main():
         unconvert_color = colorsys.hsv_to_rgb
     else:
         get_adj = get_adj_RGB
-        convert_color = lambda a, b, c : (a, b, c)
-        unconvert_color = lambda a, b, c : (a, b, c)
+        convert_color   = lambda a, b, c: (a, b, c)
+        unconvert_color = lambda a, b, c: (a, b, c)
 
     input_image = Image.open(filename).convert()
     width, height = input_image.size
 
     # Init input pixel list, and modify it to only use appropriate colors
     input_pixels = input_image.load()
+    start_timer('Converting image')
     transform_pixels = {}
     for x in range(width):
         for y in range(height):
-            a = input_pixels[x, y][0] / 255.0
-            b = input_pixels[x, y][1] / 255.0
-            c = input_pixels[x, y][2] / 255.0
+            transform_pixels[x, y] = tuple(map(lambda x: int(x * (color_size - 1)),
+                    convert_color(*map(lambda x: x / 255.0,
+                        input_pixels[x, y]))))
+    end_timer()
 
-            a, b, c = convert_color(a, b, c)
-
-            a = a * (color_size - 1)
-            b = b * (color_size - 1)
-            c = c * (color_size - 1)
-
-            transform_pixels[x, y] = (int(a), int(b), int(c))
-
+    start_timer('Initializing 3d color space')
     # Init 3d 'color' space, where we will do the smoothing
     # each point in this space is a list of (x,y) coordinates
     transform_colorspace = {}
@@ -66,16 +106,18 @@ def main():
         for y in range(height):
             c = transform_pixels[x, y]
             transform_colorspace[c].append((x, y))
+    end_timer()
 
+    start_timer('Smoothing color')
     # Now do the actual color smoothing
-    start_keys = [x for x in
-        sorted(transform_colorspace,
-            key=lambda x: len(transform_colorspace[x]))
-        if len(transform_colorspace[x]) > 1]
+    start_keys = filter(lambda x: len(transform_colorspace[x]) > 1,
+            sorted(transform_colorspace,
+                   key=lambda x: len(transform_colorspace[x])))
 
+    print()
     _prev = 0
     queue = deque()
-    for start_key in start_keys:
+    for i, start_key in enumerate(start_keys):
         transform_colorspace[start_key] = (
             deque(sorted(
             transform_colorspace[start_key],
@@ -87,7 +129,8 @@ def main():
 
         if len(transform_colorspace[start_key]) != _prev:
             _prev = len(transform_colorspace[start_key])
-            print(_prev)
+            print(_prev, end='\r')
+            sys.stdout.flush()
         # Declare shit
         end_keys = []
         # Use a dict for searched keys because hash maps are fast
@@ -125,7 +168,7 @@ def main():
         # tail of one point to the head of the next.
         for end_key in end_keys:
             if prev[end_key] is None:
-                print("OH FUCK SOMETHIN BAD HAPPENED")
+                raise ValueError('prev[end_key] is None')
 
             current_key = end_key
             while prev[current_key] is not None:
@@ -134,26 +177,17 @@ def main():
                 )
                 current_key = prev[current_key]
 
+    print()
+    end_timer()
 
-    # Transform back to 256 colors
-    print("Converting image...")
-    output_image = Image.new(input_image.mode, input_image.size)
-    for key, point in transform_colorspace.items():
-        a = float(key[0]) / (color_size - 1)
-        b = float(key[1]) / (color_size - 1)
-        c = float(key[2]) / (color_size - 1)
-
-        a, b, c = unconvert_color(a, b, c)
-
-        a = int(a * 255)
-        b = int(b * 255)
-        c = int(c * 255)
-
-        for pos in point:
-            x, y = pos
-            output_image.putpixel((x, y), (a, b, c))
-
-    output_image.save(filename + '_output.bmp')
+    print('Converting image')
+    output_image = convert_output_image(input_image, transform_colorspace, color_size, unconvert_color)
+    end_timer()
+    basename = os.path.splitext(filename)[0]
+    outname = basename + '_output_' + iso_now() + '.png'
+    print('Saving image as', outname)
+    output_image.save(outname)
+    print('Opening image')
     output_image.show()
 
 def calc_channel(color, searched, color_size, channel, adj):
@@ -200,4 +234,8 @@ def get_adj_HSB(color, searched, order, color_size):
     return adj
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except:
+        print()
+        raise
